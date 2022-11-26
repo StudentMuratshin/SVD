@@ -101,6 +101,21 @@ Matrix Matrix::operator*(const Matrix& b) const {
     return Matrix(h, w, v.data());
 }
 
+bool Matrix::operator==(const Matrix& b) const {
+    const Matrix& a = *this;
+    if (a.size.w != b.size.h)
+        throw std::runtime_error("Can't multiply matricies with incompatible sizes!");
+    int h = a.size.h;
+    int w = b.size.w;
+    std::vector<double> v;
+    for (int i = 0; i < h; i++)
+        for (int j = 0; j < w; j++) 
+        {
+            if (a.get(i, j) != b.get(i, j)) return false;
+        }
+    return true;
+}
+
 Matrix Matrix::operator*(const double b) const {
     const Matrix& a = *this;
     int h = a.size.h;
@@ -166,20 +181,6 @@ Matrix Matrix::getRow(int col)
     return Matrix{ 1, size.h, col_data.data() };
 }
 
-double* Matrix::getCoef(const Matrix& A)
-{
-    int w = A.getW();
-    int h = A.getH();
-    double* c = new double[w*h];
-    for (int i = 0; i < w; i++)
-    {
-        for (int j = 0; j < h; j++)
-        {
-            c[i] = A.get(i, j);
-        }
-    }
-    return c;
-}
 Matrix Matrix::transpose() const {
     vector<double>col_data;
     if (size.h == 1 || size.w == 1)
@@ -262,19 +263,40 @@ Matrix Make_square(const Matrix b)
     return res;
 }
 
-Matrix Eigen_Values(const Matrix B)
+pair<Matrix,Matrix> Eigen_Values(const Matrix B)
 {
-    Matrix A = B;
-    double Max_prev = 0, Max = 0;
-    do {
-        Max_prev = A.getDiagonal().getMaxVal();
-        pair<Matrix, Matrix> QR = A.QR();
-        Matrix Q = QR.first;
-        Matrix R = QR.second;
-        A = R * Q;
-        Max = A.getDiagonal().getMaxVal();
-    } while (abs(Max - Max_prev) >= 1e-5);
-    return A.getDiagonal();
+    if (B.transpose() == B)
+    {
+        Matrix A = B;
+        Matrix V = V.I(B.getW());
+        int n = 0;
+        double Max_prev = 0, Max = 0;
+        do {
+            n++;
+            Max_prev = A.getDiagonal().getMaxVal();
+            pair<Matrix, Matrix> QR = A.QR();
+            Matrix Q = QR.first;
+            Matrix R = QR.second;
+            V = V * Q;
+            A = R * Q;
+            Max = A.getDiagonal().getMaxVal();
+        } while (abs(Max - Max_prev) >= 1e-5);
+        return pair<Matrix, Matrix>(A.getDiagonal(), V);
+    }
+    else
+    {
+        Matrix A = B;
+        double Max_prev = 0, Max = 0;
+        do {
+            Max_prev = A.getDiagonal().getMaxVal();
+            pair<Matrix, Matrix> QR = A.QR();
+            Matrix Q = QR.first;
+            Matrix R = QR.second;
+            A = R * Q;
+            Max = A.getDiagonal().getMaxVal();
+        } while (abs(Max - Max_prev) >= 1e-5);
+        //return A.getDiagonal();
+    }
 }
 
 double Matrix::getMaxVal()
@@ -304,13 +326,27 @@ Matrix Matrix::getDiagonal()
     return Matrix{ 1, min(size.w, size.h), col_data.data() };
 }
 
-void Matrix::solve_gauss(Matrix ai, Matrix bi, Matrix xi) {
-    int n = xi.getW();
-    double A[] = getCoef(ai);
+Matrix solve_gauss(const Matrix ai, const Matrix bi) {
+    int n = bi.getW();
+    double* A = new double[ai.getH() * ai.getW()];
+    double* b = new double[bi.getW()];
+    double* x = new double[bi.getW()];
+
+    for (int i = 0; i < ai.getH(); i++)
+    {
+        for (int j = 0; j < ai.getW(); j++)
+        {
+            A[i * n + j] = ai.get(i, j);
+        }
+    }
+    for (int i = 0; i < ai.getH(); i++)
+    {
+        b[i] = bi.get(0, i);
+    }
+
     for (int i = 0; i < n; ++i) {
         double pivot = A[i + i * n];
         if (abs(pivot) < DBL_EPSILON) {
-            // Если пилотный элемент равен нулю
             double max = 0.;
             int max_index = i;
             for (int j = i + 1; j < n; ++j) {
@@ -351,4 +387,5 @@ void Matrix::solve_gauss(Matrix ai, Matrix bi, Matrix xi) {
             x[i] -= A[j + i * n] * x[j];
         }
     }
+    return Matrix{ 1 , bi.getW(), x };
 }

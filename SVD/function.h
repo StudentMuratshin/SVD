@@ -21,6 +21,8 @@ public:
 
 	Matrix operator*(const Matrix& b) const;
 
+	bool operator==(const Matrix& b) const;
+
 	Matrix operator*(const double b) const;
 
 	friend ostream& operator<<(ostream& out, Matrix& x);
@@ -36,10 +38,6 @@ public:
 	Matrix getDiagonal();
 
 	Matrix getRow(int col);
-
-	double* getCoef(const Matrix& A);
-
-	void solve_gauss(Matrix A, Matrix b, Matrix x);
 
 	double getMaxVal();
 
@@ -57,4 +55,6 @@ Matrix Gram_Schmidt(Matrix& arr);
 
 double Dot_product(const Matrix a, const Matrix b);
 
-Matrix Eigen_Values(const Matrix B);
+pair<Matrix, Matrix> Eigen_Values(const Matrix B);
+
+Matrix solve_gauss(const Matrix A, const Matrix b);
