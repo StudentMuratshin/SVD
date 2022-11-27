@@ -39,6 +39,8 @@ public:
 
 	Matrix getRow(int col);
 
+	void SVD();
+
 	double getMaxVal();
 
 	pair<Matrix, Matrix> QR();
@@ -55,6 +57,6 @@ Matrix Gram_Schmidt(Matrix& arr);
 
 double Dot_product(const Matrix a, const Matrix b);
 
-pair<Matrix, Matrix> Eigen_Values(const Matrix B);
+pair<Matrix, Matrix> Eigen_Values_Vectors_symmetrical(const Matrix B);
 
-Matrix solve_gauss(const Matrix A, const Matrix b);
+Matrix Eigen_Values(const Matrix B);

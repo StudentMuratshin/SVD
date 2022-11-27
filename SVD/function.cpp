@@ -220,25 +220,6 @@ int Matrix::getH() const {
     return size.h;
 }
 
-
-pair<Matrix, Matrix> Matrix::QR()
-{
-    Matrix& a = *this;
-    if (a.getH() != a.getW())
-    {
-        Matrix a_sq = Make_square(a);
-        Matrix Q = Gram_Schmidt(a_sq);
-        Matrix R = Q.transpose() * a;
-        return pair<Matrix, Matrix>(Q, R);
-    }
-    else
-    {
-        Matrix Q = Gram_Schmidt(a);
-        Matrix R = Q.transpose() * a;
-        return pair<Matrix, Matrix>(Q, R);
-    }
-}
-
 ostream& operator<<(ostream& out, Matrix& x)
 {
     for (int i = 0; i < x.getH(); i++) {
@@ -261,42 +242,6 @@ Matrix Make_square(const Matrix b)
         }
     }
     return res;
-}
-
-pair<Matrix,Matrix> Eigen_Values(const Matrix B)
-{
-    if (B.transpose() == B)
-    {
-        Matrix A = B;
-        Matrix V = V.I(B.getW());
-        int n = 0;
-        double Max_prev = 0, Max = 0;
-        do {
-            n++;
-            Max_prev = A.getDiagonal().getMaxVal();
-            pair<Matrix, Matrix> QR = A.QR();
-            Matrix Q = QR.first;
-            Matrix R = QR.second;
-            V = V * Q;
-            A = R * Q;
-            Max = A.getDiagonal().getMaxVal();
-        } while (abs(Max - Max_prev) >= 1e-5);
-        return pair<Matrix, Matrix>(A.getDiagonal(), V);
-    }
-    else
-    {
-        Matrix A = B;
-        double Max_prev = 0, Max = 0;
-        do {
-            Max_prev = A.getDiagonal().getMaxVal();
-            pair<Matrix, Matrix> QR = A.QR();
-            Matrix Q = QR.first;
-            Matrix R = QR.second;
-            A = R * Q;
-            Max = A.getDiagonal().getMaxVal();
-        } while (abs(Max - Max_prev) >= 1e-5);
-        //return A.getDiagonal();
-    }
 }
 
 double Matrix::getMaxVal()
@@ -324,68 +269,4 @@ Matrix Matrix::getDiagonal()
         col_data.push_back(get(i, i));
     }
     return Matrix{ 1, min(size.w, size.h), col_data.data() };
-}
-
-Matrix solve_gauss(const Matrix ai, const Matrix bi) {
-    int n = bi.getW();
-    double* A = new double[ai.getH() * ai.getW()];
-    double* b = new double[bi.getW()];
-    double* x = new double[bi.getW()];
-
-    for (int i = 0; i < ai.getH(); i++)
-    {
-        for (int j = 0; j < ai.getW(); j++)
-        {
-            A[i * n + j] = ai.get(i, j);
-        }
-    }
-    for (int i = 0; i < ai.getH(); i++)
-    {
-        b[i] = bi.get(0, i);
-    }
-
-    for (int i = 0; i < n; ++i) {
-        double pivot = A[i + i * n];
-        if (abs(pivot) < DBL_EPSILON) {
-            double max = 0.;
-            int max_index = i;
-            for (int j = i + 1; j < n; ++j) {
-                if (abs(A[i + j * n]) > max) {
-                    max_index = j;
-                    max = A[j + j * n];
-                }
-            }
-
-            if (max < DBL_EPSILON) {
-                throw std::invalid_argument("det(A) = 0");
-            }
-            for (int k = i; k < n; ++k) {
-                std::swap(A[k + max_index * n], A[k + i * n]);
-            }
-            std::swap(b[i], b[max_index]);
-            i--;
-            continue;
-        }
-        for (int j = i; j < n; ++j) {
-            A[j + i * n] /= pivot;
-        }
-        b[i] /= pivot;
-
-        for (int j = i + 1; j < n; ++j) {
-            pivot = A[i + j * n];
-            for (int k = 0; k < n; ++k) {
-                A[k + j * n] -= pivot * A[k + n * i];
-            }
-            b[j] -= pivot * b[i];
-        }
-    }
-
-    //backward
-    for (int i = n - 1; i >= 0; --i) {
-        x[i] = b[i];
-        for (int j = i + 1; j < n; ++j) {
-            x[i] -= A[j + i * n] * x[j];
-        }
-    }
-    return Matrix{ 1 , bi.getW(), x };
 }

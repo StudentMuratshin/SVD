@@ -129,7 +129,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="function.cpp" />
+    <ClCompile Include="qr_f.cpp" />
     <ClCompile Include="SVD.cpp" />
+    <ClCompile Include="svd_f.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="function.h" />
