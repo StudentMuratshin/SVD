@@ -53,6 +53,7 @@ pair<Matrix, Matrix> Eigen_Values_Vectors_symmetrical(const Matrix B)
 Matrix Eigen_Values(const Matrix B)
 {
     Matrix A = B;
+    int w = A.getW(), h = A.getH();
     Matrix V = V.I(B.getW());
     int n = 0;
     double Max_prev = 0, Max = 0;
@@ -65,7 +66,9 @@ Matrix Eigen_Values(const Matrix B)
         V = V * Q;
         A = R * Q;
         Max = A.getDiagonal().getMaxVal();
-    } while (abs(Max - Max_prev) >= 1e-5);
+        // finish exiting the loop
+        //if (n % 3 == 0) cout << "n:" << n << endl << A << endl;
+    } while (A.get(h - 1, 0) >= 1e-13);
     for (int i = 0; i < A.getH(); i++)
         for (int j = 0; j < A.getW(); j++)
         {
