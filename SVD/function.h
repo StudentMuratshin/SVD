@@ -3,6 +3,7 @@
 #include <iostream>
 using namespace std;
 
+
 class Matrix {
 	struct MatrixSize {
 		int w;
@@ -39,11 +40,11 @@ public:
 
 	Matrix getRow(int col);
 
-	void SVD();
-
 	double getMaxVal();
 
 	pair<Matrix, Matrix> QR();
+
+	void SVD(Matrix& U, Matrix& Sigma, Matrix& V);
 
 	Matrix transpose()const;
 	int getW() const;
